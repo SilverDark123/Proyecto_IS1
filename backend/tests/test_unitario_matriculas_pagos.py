@@ -135,3 +135,65 @@ async def test_approve_installment_marks_paid_and_accepts_enrollment_when_all_pa
     res = await pc.approve_installment(77, db)
 
     assert res.get("message") == "Installment aprobado"
+
+
+@pytest.mark.asyncio
+async def test_get_student_enrollments_returns_list_with_installments():
+    db = MagicMock()
+
+    async def fetch_side(sql, *params):
+        s = sql.lower()
+        if "from enrollments e" in s and "left join" in s:
+            return [{"id": 1, "payment_plan_id": 50, "status": "pendiente"}]
+        if "from installments" in s:
+            return [{"id": 100, "installment_number": 1, "amount": 700, "status": "pending"}]
+        return []
+
+    db.fetch = AsyncMock(side_effect=fetch_side)
+
+    result = await ec.get_student_enrollments(1, db)
+
+    assert isinstance(result, list)
+    assert result[0]["installments"][0]["id"] == 100
+
+
+@pytest.mark.asyncio
+async def test_reject_installment_updates_status_and_enrollment():
+    db = MagicMock()
+    db.fetchrow = AsyncMock(return_value={
+        "id": 10, "payment_plan_id": 20, "enrollment_id": 30, "due_date": None
+    })
+    db.execute = AsyncMock()
+
+    res = await pc.reject_installment(10, "Voucher ilegible", db)
+
+    assert res.get("message") == "Pago rechazado y matrícula actualizada"
+    db.execute.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_get_pending_payments_returns_list():
+    db = MagicMock()
+    db.fetch = AsyncMock(return_value=[
+        {"id": 1, "enrollment_id": 5, "student_id": 10, "first_name": "Juan",
+         "last_name": "Perez", "dni": "12345678"}
+    ])
+
+    res = await pc.get_pending_payments(db)
+
+    assert isinstance(res, list)
+    assert res[0]["dni"] == "12345678"
+
+
+@pytest.mark.asyncio
+async def test_get_all_installments_filters_by_status():
+    db = MagicMock()
+    db.execute = AsyncMock()
+    db.fetch = AsyncMock(return_value=[
+        {"id": 1, "status": "paid", "enrollment_status": "aceptado"}
+    ])
+
+    res = await pc.get_all_installments("paid", db)
+
+    assert isinstance(res, list)
+    assert res[0]["status_ui"] == "paid"

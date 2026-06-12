@@ -12,7 +12,11 @@ import asyncpg
 
 async def main():
     conn = await asyncpg.connect(DATABASE_URL)
-    row = await conn.fetchrow("SELECT id, course_id, group_label FROM course_offerings WHERE visible = true LIMIT 1")
+    # Try first using a common 'visible' flag, otherwise fallback to any offering
+    try:
+        row = await conn.fetchrow("SELECT id, course_id, group_label FROM course_offerings WHERE visible = true LIMIT 1")
+    except Exception:
+        row = await conn.fetchrow("SELECT id, course_id, group_label FROM course_offerings LIMIT 1")
     await conn.close()
     if row:
         print(f"{row['id']}|course|{row['course_id']}|{row.get('group_label')}")
