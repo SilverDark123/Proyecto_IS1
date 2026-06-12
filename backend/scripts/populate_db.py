@@ -1,3 +1,5 @@
+# populate_db.py
+
 """
 Script para poblar la base de datos con datos de prueba
 Genera docentes, cursos, ofertas, paquetes y horarios
