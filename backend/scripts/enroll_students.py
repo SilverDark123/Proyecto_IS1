@@ -25,7 +25,7 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 )
 
-VOUCHER_PATH = r"C:\Users\Jacobo\Downloads\images.jpg"
+VOUCHER_PATH = Path(__file__).resolve().parents[2] / "frontend" / "src" / "assets" / "Albert Einstein.jpg"
 
 async def main():
     conn = await asyncpg.connect(DATABASE_URL)
@@ -54,7 +54,7 @@ async def main():
         # Subir voucher a Cloudinary
         print(f"\n📤 Subiendo comprobante de pago...")
         upload_result = cloudinary.uploader.upload(
-            VOUCHER_PATH,
+            str(VOUCHER_PATH),
             folder="vouchers",
             resource_type="image"
         )
