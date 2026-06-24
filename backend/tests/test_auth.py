@@ -15,10 +15,8 @@ from utils.security import get_password_hash, verify_password, create_access_tok
 
 BASE = "/api/auth"
 
-# ─────────────────────────────────────────────────────────────────
 # HELPER: crea un mock de conexión a la BD y lo inyecta en FastAPI
 # Usa app.dependency_overrides para reemplazar get_db completamente
-# ─────────────────────────────────────────────────────────────────
 def override_db(mock_conn):
     """Retorna una función generadora que FastAPI acepta como dependencia"""
     async def _get_db_override():
@@ -168,7 +166,7 @@ async def test_registro_dni_duplicado():
             response = await client.post(
                 f"{BASE}/register",
                 json={
-                    "dni": "11111111",
+                    "dni": "111111e1",
                     "password": "Test1234",
                     "first_name": "Juan",
                     "last_name": "Perez",
